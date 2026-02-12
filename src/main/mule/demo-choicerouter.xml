@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="04126659-7c69-4666-891f-75cd1482dd73" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="99a2c506-4f39-4be3-a249-ae25fb320211" >
+		<db:my-sql-connection host="127.0.0.1" port="3306" user="root" password="Hello@123" database="mule" />
+	</db:config>
+	<configuration doc:name="Configuration" doc:id="eef37bec-b230-4bd8-a34c-27446c6a3b67" defaultErrorHandler-ref="testingError_Handler" />
+	<flow name="demo-choicerouterFlow" doc:id="30abb22a-905a-4106-91e2-76c4ba781155" >
+		<http:listener doc:name="Listener" doc:id="556906d2-8950-4638-ae81-a023e9e98666" config-ref="HTTP_Listener_config" path="/choicerouter">
+			<http:error-response >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<set-variable value="#[attributes.queryParams.custname]" doc:name="custname" doc:id="9f194009-df94-48db-81e3-206f5723ceee" variableName="custname"/>
+		<db:select doc:name="Select" doc:id="0aa082a5-56b6-47ca-9fbf-c6a4c1e4f66f" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM mule.bankdetails WHERE custname = :custname;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  custname: vars.custname
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="04bd8100-acfc-4cc2-aa80-8c752c5b36c4" >
+			<when expression='#[sizeOf(payload) &gt; 0]'>
+				<ee:transform doc:name="Transform Message" doc:id="d23aaeab-e2c3-446f-af6d-d070dbc1d057" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="23454265-664b-428b-a95d-3e245a24d6bf" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message":"No record found"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<error-handler name="testingError_Handler" doc:id="44f88009-2b67-4e59-81f4-0a7c1c4b4dae" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ddc4e141-1a79-48aa-8c94-2c932a14fe5e" type="DB:CONNECTIVITY">
+			<ee:transform doc:name="Transform Message" doc:id="1c2067b2-b272-484b-aa91-020b8db7e13a" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"error": "DB CONNECTIVITY"
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+</mule>

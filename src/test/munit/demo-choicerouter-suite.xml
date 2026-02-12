@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="demo-choicerouter-suite.xml" />
+	<munit:test name="demo-choicerouterFlow-test-success" doc:id="b2131c19-25b1-4e15-bd47-e476271d699c" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select" doc:id="03f7df73-481c-4f04-87ad-7b35c7f33358" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="0aa082a5-56b6-47ca-9fbf-c6a4c1e4f66f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://demochoicerouterFlowtestsuccess\mock_payload.dwl')]" mediaType="application/java" />
+					<munit-tools:variables >
+						<munit-tools:variable key="custname" value="#[output application/java --- readUrl('classpath://demochoicerouterFlowtestsuccess\mock_variable_.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="278d10cb-9fa1-4751-a8bc-7570002c59e4" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://demochoicerouterFlowtestsuccess\set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://demochoicerouterFlowtestsuccess\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to demo-choicerouterFlow" doc:id="65fe1877-d989-4ed0-a262-2c1ae85bd86e" name="demo-choicerouterFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="834adbd5-d79c-4802-90e3-74be4cd1d9bb" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import demochoicerouterFlowtestsuccess::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="demo-choicerouterFlow-test-norecordsFound" doc:id="a80942e2-1388-4d8c-9e44-8aa509a2b5b1" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select" doc:id="7d368f96-3602-4538-b7c8-669f794916ac" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="0aa082a5-56b6-47ca-9fbf-c6a4c1e4f66f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://demochoicerouterFlowtestfailure\mock_payload.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="custname" value="#[output application/java --- readUrl('classpath://demochoicerouterFlowtestfailure\mock_variable_.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="0a951b2c-916b-4589-9b31-18bbfdb664a2" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://demochoicerouterFlowtestfailure\set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://demochoicerouterFlowtestfailure\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to demo-choicerouterFlow" doc:id="64270323-0330-4865-8e4a-25b78ca7ce15" name="demo-choicerouterFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="dc593ccd-2074-4d78-b6eb-aa790135e931" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import demochoicerouterFlowtestfailure::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="demo-choicerouterFlow-test-error" doc:id="9b2a7d7f-bc82-4312-9961-4769914ad639" timeOut="120000000">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select" doc:id="fe58074c-0f71-495e-adce-24e84d425888" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="0aa082a5-56b6-47ca-9fbf-c6a4c1e4f66f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					
+					<munit-tools:error typeId="DB:CONNECTIVITY" />
+					<munit-tools:variables >
+						<munit-tools:variable key="custname" value="#[output application/java --- readUrl('classpath://demochoicerouterFlowtestfailure\mock_variable_.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="cd9c791d-ac9c-4df5-8485-042a57e79a88" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://demochoicerouterFlowtestfailure\set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://demochoicerouterFlowtestfailure\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="5833150c-e386-48a4-9d9c-925e0cc9df39" >
+				<flow-ref doc:name="Flow-ref to demo-choicerouterFlow" doc:id="feee7aef-fcc9-4c0b-9ee9-238f2d68256d" name="demo-choicerouterFlow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="349335f4-ac1d-4789-a690-fd262ebc7c88" type="ANY">
+						<logger level="INFO" doc:name="Logger" doc:id="d58cfec5-67bf-48ef-9fa2-056748fd2c57" message="Continue"/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="1674135c-67eb-462a-a773-76478219244b" expression="#[payload.error]" is="#[MunitTools::equalTo('DB CONNECTIVITY')]"/>
+
+		</munit:validation>
+	
+</munit:test>
+	
+
+
+</mule>
